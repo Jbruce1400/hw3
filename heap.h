@@ -2,11 +2,15 @@
 #define HEAP_H
 #include <functional>
 #include <stdexcept>
+#include <vector>
 
 template <typename T, typename PComparator = std::less<T> >
 class Heap
 {
 public:
+// find best child (for loop, start left and assume left is best child, this is also where you would use M)
+// check if left most index is greater than or equal to size of array
+// compare
   /**
    * @brief Construct a new Heap object
    * 
@@ -61,13 +65,55 @@ public:
 
 private:
   /// Add whatever helper functions and data members you need below
+  
+  // returns the largest/smallest value in heap
+  int sortSiblings (int index) const;
 
 
-
+  std::vector<T> data;
+  int m_;
+  PComparator c_;
 
 };
 
+template <typename T, typename PComparator>
+Heap<T, PComparator>::Heap(int m, PComparator c){
+  m_ = m;
+  c_ = c;
+}
+
+template <typename T, typename PComparator>
+Heap<T, PComparator>::~Heap(){}
+
+template <typename T, typename PComparator>
+int Heap<T,PComparator>::sortSiblings (int index) const{
+  int best = index;
+
+    for (int i = 1; i <= m_; ++i){
+      if ((i != m_) && c_(data[index+i],data[best])){
+        best = index+i;
+      }
+    }   
+
+  return best;  
+}
+
 // Add implementation of member functions here
+
+template <typename T, typename PComparator>
+size_t Heap<T,PComparator>::size() const {
+  return data.size();
+}
+
+template <typename T, typename PComparator>
+bool Heap<T,PComparator>::empty() const {
+  if (data.size()==0){
+    return true;
+  }
+  else {
+    return false;
+  }
+}
 
 
 // We will start top() for you to handle the case of 
@@ -81,33 +127,60 @@ T const & Heap<T,PComparator>::top() const
     // ================================
     // throw the appropriate exception
     // ================================
+    throw std::underflow_error("stack underflow_error"); 
 
+  }
+  else{
+    return data[0];
 
   }
   // If we get here we know the heap has at least 1 item
   // Add code to return the top element
 
-
-
 }
-
-
 // We will start pop() for you to handle the case of 
 // calling top on an empty heap
 template <typename T, typename PComparator>
 void Heap<T,PComparator>::pop()
 {
-  if(empty()){
+  if(data.empty()){
     // ================================
     // throw the appropriate exception
     // ================================
+    throw std::underflow_error("stack underflow_error"); 
+  }
+  else{
+    T temp = data[0];
+    data[0] = data.back();
+    data.at(data.size()-1) = temp;
+    data.pop_back();
+      
+    for (int i = 2; i < data.size(); i += (i*m_) + (m_%2) ){
+      int best = sortSiblings(i); // gets index of best integer
+      T temp = data[i];
+      data[i] = data[best];
+      data[best] = temp;
+    }
+  }
+}
 
+template <typename T, typename PComparator>
+void Heap<T,PComparator>::push(const T& item){
+  data.push_back(item);
+  int itemIndex = size()-1;
+  int parent = ( (itemIndex-1) / m_) - (m_ % 2);
+  
+  while( (parent >=size() ) && (c_(data[itemIndex], data[parent])) ){
+    T temp = data[parent];
+    data[parent] = data[itemIndex];
+    data[itemIndex] = temp;
+    itemIndex = parent;
+    parent = ( (itemIndex-1) / m_) - (m_ % 2);
+  }
+  
 
   }
 
-
-
-}
 
 
 
